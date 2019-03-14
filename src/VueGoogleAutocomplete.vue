@@ -6,6 +6,7 @@
         :id="id"
         :placeholder="placeholder"
         v-model="autocompleteText"
+	:disabled="disabled"
         @focus="onFocus()"
         @blur="onBlur()"
         @change="onChange"
@@ -44,6 +45,11 @@
           placeholder: {
             type: String,
             default: 'Start typing'
+          },
+	  
+	  disabled: {
+            type: Boolean,
+            default: false
           },
 
           types: {

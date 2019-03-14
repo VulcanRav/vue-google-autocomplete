@@ -46,6 +46,10 @@ export default {
       required: true
     },
 
+    model: {
+      type: String,
+    },
+
     classname: String,
 
     placeholder: {
@@ -93,7 +97,6 @@ export default {
        * Autocomplete input text
        * @type {String}
        */
-      model: '',
 
       geolocation: {
         /**

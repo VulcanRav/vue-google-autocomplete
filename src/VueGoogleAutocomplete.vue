@@ -5,7 +5,7 @@
     :class="classname"
     :id="id"
     :placeholder="placeholder"
-    v-model="model"
+    :value="address()"
     :disabled="disabled"
     @focus="onFocus()"
     @blur="onBlur()"
@@ -46,8 +46,9 @@ export default {
       required: true
     },
 
-    model: {
+    inputModel: {
       type: String,
+      default: ''
     },
 
     classname: String,
@@ -58,6 +59,11 @@ export default {
     },
 
     disabled: {
+      type: Boolean,
+      default: false
+    },
+
+    requiresStreetAddress: {
       type: Boolean,
       default: false
     },
@@ -156,11 +162,32 @@ export default {
   },
 
   methods: {
+    hasStreetAddress(place) {
+      // TODO: IDEA
+      if ('address_components' in place) {
+        return (
+          place.address_components.find(component => {
+            return (
+              component.types.find(type => type === 'street_number') !==
+              undefined
+            )
+          }) !== undefined
+        )
+      } else {
+        return false
+      }
+    },
+
+    address() {
+      return this.inputModel || 'No Address available'
+    },
     /**
      * When a place changed
      */
     onPlaceChanged() {
       let place = this.autocomplete.getPlace()
+
+      this.hasStreetAddress(place)
 
       if (!place.geometry) {
         // User entered the name of a Place that was not suggested and
@@ -170,12 +197,21 @@ export default {
       }
 
       if (place.address_components !== undefined) {
-        // return returnData object and PlaceResult object
-        this.$emit('placechanged', this.formatResult(place), place, this.id)
-
-        // update model then emit change event
-        this.model = document.getElementById(this.id).value
-        this.onChange()
+        if (this.hasStreetAddress(place)) {
+          // return returnData object and PlaceResult object
+          this.$emit(
+            'placechanged',
+            this.formatResult(place),
+            document.getElementById(this.id).value,
+            place,
+            this.id
+          )
+          // update model then emit change event
+          this.model = document.getElementById(this.id).value
+          this.onChange()
+        } else {
+          this.$emit('error', 'please provide a street number')
+        }
       }
     },
 
@@ -199,6 +235,7 @@ export default {
      */
     onChange() {
       this.$emit('change', this.model)
+      this.$emit('clearError')
     },
 
     /**
